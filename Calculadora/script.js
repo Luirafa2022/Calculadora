@@ -1,10 +1,21 @@
 let runningTotal = 0;
-let buffer = "0";
+let buffer = '0';
 let previousOperator;
+let isError = false; // Variável para rastrear se ocorreu um erro
 
 const screen = document.querySelector('.screen');
 
 function buttonClick(value) {
+    if (isError && value === 'C') {
+        clearCalculator();
+        isError = false; // Limpa o erro com um único clique em "C"
+        return;
+    }
+
+    if (isError) {
+        return; // Impede a interação após um erro
+    }
+
     if (isNaN(value)) {
         handleSymbol(value);
     } else {
@@ -16,31 +27,29 @@ function buttonClick(value) {
 function handleSymbol(symbol) {
     switch (symbol) {
         case 'C':
-            buffer = '0';
-            runningTotal = 0;
+            clearCalculator();
             break;
         case '=':
             if (previousOperator === null) {
-                return
+                return;
+            }
+            if (previousOperator === '÷' && buffer === '0') {
+                // Verificar divisão por zero
+                isError = true;
+                buffer = 'Error';
+                break;
             }
             flushOperation(parseInt(buffer));
             previousOperator = null;
-            buffer = runningTotal;
+            buffer = runningTotal.toString(); // Converte o resultado em string
             runningTotal = 0;
             break;
         case '←':
-            if (buffer.length === 1) {
-                buffer = '0';
-            } else {
-                buffer = buffer.substring(0, buffer.length - 1);
-                break;
-            }
-            case '+':
-            case '−':
-            case '×':
-            case '÷':
-                handleMath(symbol);
-                break;
+            handleBackspace();
+            break;
+        default:
+            handleMath(symbol);
+            break;
     }
 }
 
@@ -61,18 +70,27 @@ function handleMath(symbol) {
 }
 
 function flushOperation(intBuffer) {
-    if (previousOperator === '+') {
-        runningTotal += intBuffer
-    } else if (previousOperator === '−') {
-        runningTotal -= intBuffer
-    } else if (previousOperator === '×') {
-        runningTotal *= intBuffer
-    } else if (previousOperator === '÷') {
-        runningTotal /= intBuffer;
+    switch (previousOperator) {
+        case '+':
+            runningTotal += intBuffer;
+            break;
+        case '−':
+            runningTotal -= intBuffer;
+            break;
+        case '×':
+            runningTotal *= intBuffer;
+            break;
+        case '÷':
+            runningTotal /= intBuffer;
+            break;
     }
 }
 
 function handleNumber(numberString) {
+    if (isError) {
+        return; // Impede a entrada de números após um erro
+    }
+
     if (buffer === '0') {
         buffer = numberString;
     } else {
@@ -80,10 +98,25 @@ function handleNumber(numberString) {
     }
 }
 
+function clearCalculator() {
+    buffer = '0';
+    runningTotal = 0;
+    previousOperator = null;
+    isError = false; // Limpa a flag de erro
+}
+
+function handleBackspace() {
+    if (buffer.length === 1) {
+        buffer = '0';
+    } else {
+        buffer = buffer.substring(0, buffer.length - 1);
+    }
+}
+
 function init() {
-    document.querySelector('.calc-buttons').addEventListener('click', function (event) {
+    document.querySelector('.calc-buttons').addEventListener('click', function(event) {
         buttonClick(event.target.innerText);
-    })
+    });
 }
 
 init();

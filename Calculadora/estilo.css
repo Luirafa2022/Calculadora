@@ -49,6 +49,7 @@ body{
     padding: 20px;
     text-align: right;
     width: 326px;
+    height: 82px;
 }
 
 .calc-button-row{
@@ -100,5 +101,5 @@ body{
 }
 
 .triple{
-    flex-basis: 73%;
+    flex-basis: 74%;
 }
